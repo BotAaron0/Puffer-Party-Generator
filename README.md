@@ -1,5 +1,7 @@
 # Puffer Party Cheat
 
+### For setup, scroll down to "One Time Setup" section below. 
+
 `main` contains the current Puffer Companion source. Each recovered release has its own `versions/v…` branch.
 
 | Version | Recovered files |
