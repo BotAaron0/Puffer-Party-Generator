@@ -1,0 +1,2 @@
+# No starter answer pack is bundled. Add your own custom-answers.txt beside the EXE.
+# Format: Category name|question keyword;another keyword|answer one;answer two

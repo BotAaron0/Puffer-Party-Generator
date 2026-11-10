@@ -1,0 +1,12 @@
+/*.exe
+/*.zip
+/release/
+/release-gemini/
+/release-yellow/
+/self-test.txt
+/.publish-work/
+/.env
+/.env.*
+*.key
+*.pem
+ai-settings.json
