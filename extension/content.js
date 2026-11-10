@@ -1,0 +1,119 @@
+(() => {
+  'use strict';
+  if (window.top !== window) return;
+  let pairing = null;
+  const hash = location.hash.match(/^#puffer=(\d{4,5})\.([a-f0-9]{64})$/);
+  if (hash) {
+    // This is a short-lived local session token, never the OpenAI API key.
+    pairing = {type: 'pair', port: Number(hash[1]), token: hash[2]};
+    history.replaceState(history.state, '', location.pathname + location.search);
+  }
+  let pinned = null, busy = false, previous = '', repeats = 0, lastDisplay = '', picking = false;
+  let host, shadow, status, question, list, counts, pause, toggle, body,rankLabel,continuousButton;
+  let continuous=true;
+  let autoRevision=-1,controlPending=false,controlSerial=0;
+  let slime=false,slimeButton,currentPaused=false,autoNote;
+  const controller=PufferAutoplay.createController();
+  function element(tag, text, cls) { const node = document.createElement(tag); if (text) node.textContent = text; if (cls) node.className = cls; return node; }
+  async function send(type, data) {
+    const reply = await chrome.runtime.sendMessage({type, data});
+    if (!reply || !reply.ok) throw new Error(reply?.error || 'Desktop connection unavailable');
+    return reply.data;
+  }
+  function mount() {
+    if (!document.body) return;
+    host = element('div'); host.id = 'puffer-companion-root';
+    host.style.cssText = 'position:fixed!important;top:12px!important;right:16px!important;width:340px!important;z-index:2147483647!important;';
+    shadow = host.attachShadow({mode: 'closed'});
+    const style = element('style'); style.textContent = PufferStyles; shadow.append(style);
+    const panel = element('section', '', 'panel'); shadow.append(panel);
+    const bar = element('div', '', 'bar'); bar.append(element('span', '', 'dot'), element('span', 'PUFFER v2.2.1 / LIVE', 'brand'));
+    toggle = element('button', '−', 'icon'); toggle.title = 'Collapse panel'; bar.append(toggle); panel.append(bar);
+    slimeButton=element('button','SLIME THEM OUT / OFF','slime');panel.append(slimeButton);
+    slimeButton.title='Prepare a word and try Enter at controlled intervals. Rejections advance to the next word. Escape stops.';
+    body = element('div', '', 'body'); panel.append(body);
+    question = element('div', 'Waiting for a game category…', 'question'); status = element('div', 'Connecting to desktop app…', 'status');
+    autoNote=element('div','Auto play off','auto-note');body.append(autoNote);
+    rankLabel=element('div','KRILLION TIER ORDER / ESTIMATES','meta');body.append(question,status,rankLabel);
+    list = element('ol', '', 'answers'); body.append(list); counts = element('div', '', 'counts'); body.append(counts);
+    const actions = element('div', '', 'actions'); pause = element('button', 'Pause');
+    const retry = element('button', 'Refresh now');retry.title='Optional extra batch. Temporary service failures retry automatically.'; const choose = element('button', 'Choose question'); const reset = element('button', 'Reset used');
+    const chooseInput=element('button','Choose answer box');chooseInput.onclick=()=>{picking='answer';status.textContent='Click the game answer textbox once. Escape cancels.';};
+    continuousButton=element('button','Live top-up: ON');continuousButton.title='Stream more suggestions every 18 seconds while this category remains active; API limits apply.';
+    continuousButton.onclick=()=>{continuous=!continuous;continuousButton.textContent='Live top-up: '+(continuous?'ON':'OFF');};
+    actions.append(pause,retry,continuousButton,choose,chooseInput,reset);body.append(actions,element('p','Tier order: One in a Krillion > Deep Cut > Rare > Schooler > Too Clever > Plankton. GAME = read from page; est. = AI guess.','footer'));
+    slimeButton.onclick=()=>setSlime(!slime);
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&slime){setSlime(false);status.textContent='Auto play stopped.';}},true);
+    toggle.onclick = () => { body.hidden = !body.hidden; toggle.textContent = body.hidden ? '+' : '−'; };
+    pause.onclick = () => act('pause'); retry.onclick = () => act('retry'); reset.onclick = () => act('reset');
+    choose.onclick = () => { picking = 'question'; status.textContent = 'Click the question on the page once. Escape cancels.'; };
+    let drag = null;
+    bar.addEventListener('pointerdown', event => { if (event.target.closest('button')) return; const rect = host.getBoundingClientRect(); drag = {x: event.clientX - rect.left, y: event.clientY - rect.top}; bar.setPointerCapture(event.pointerId); });
+    bar.addEventListener('pointermove', event => { if (!drag) return; host.style.setProperty('left', Math.max(0, Math.min(innerWidth - 340, event.clientX - drag.x)) + 'px', 'important'); host.style.setProperty('top', Math.max(0, Math.min(innerHeight - 50, event.clientY - drag.y)) + 'px', 'important'); host.style.setProperty('right', 'auto', 'important'); });
+    bar.addEventListener('pointerup', () => { drag = null; });
+    document.addEventListener('click', event => {
+      if(!picking||event.composedPath().includes(host))return;
+      event.preventDefault();event.stopPropagation();
+      if(picking==='answer'){
+        const input=event.target.closest('input,textarea');
+        if(!input){status.textContent='Click inside the game answer textbox.';return;}
+        PufferAutoplay.pinInput(document,input);controller.reset(document,previous);status.textContent='Answer box selected. Auto play will use it.';
+      }else{pinned=event.target;previous='';repeats=0;status.textContent='Question selected. Watching automatically…';}
+      picking=false;
+    },true);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') picking = false; });
+    document.body.append(host);
+  }
+  function paintSlime(){slimeButton.textContent='SLIME THEM OUT / '+(slime?'ON':'OFF');slimeButton.dataset.on=String(slime);}
+  async function setSlime(enabled){
+    const serial=++controlSerial;controlPending=true;slime=enabled;paintSlime();
+    if(!enabled){controller.stop(document);autoNote.textContent='Auto play stopped';}
+    try{const state=await send('autoplay',{enabled});if(serial===controlSerial){controlPending=false;render(state);}}
+    catch(error){if(serial===controlSerial){controlPending=false;slime=false;paintSlime();status.textContent=error.message;}}
+  }
+  function render(state) {
+    currentPaused=state.paused;
+    if(!controlPending&&typeof state.autoPlay==='boolean'&&(state.autoPlayRevision??0)>=autoRevision){autoRevision=state.autoPlayRevision??0;slime=state.autoPlay;paintSlime();}
+    status.textContent = state.status; question.textContent = state.question || 'Waiting for a game category…'; pause.textContent = state.paused ? 'Resume' : 'Pause';
+    counts.textContent = `${state.answers.length} available · ${state.usedCount} used · live ${new Date().toLocaleTimeString()}`;
+    const ranked=state.rankedAnswers||state.answers.map(word=>({word,tier:'Unrated',source:'AI estimate'}));
+    rankLabel.textContent=ranked.some(x=>x.source==='Game')?'KRILLION TIERS / GAME + ESTIMATES':'KRILLION TIER ORDER / AI ESTIMATES';
+    const signature = JSON.stringify([ranked,state.paused]);
+    if (signature === lastDisplay) return; lastDisplay = signature; list.replaceChildren();
+    if (!state.answers.length) { list.append(element('li', state.paused ? 'Suggestions paused.' : 'Answers appear automatically when a question is detected.', 'empty')); return; }
+    ranked.forEach((entry, index) => {
+      const word=entry.word;
+      const row = element('li', '', 'answer'), copy = element('button', '', 'word'), mark = element('button', '✓', 'mark');
+      copy.append(element('span',word),element('span',(entry.source==='Game'?'GAME / ':'est. / ')+entry.tier,'tier'+(entry.source==='Game'?' game':'')));
+      copy.title = 'Copy ' + word; mark.title = 'Mark ' + word + ' as used';
+      copy.onclick = async () => { try { await navigator.clipboard.writeText(word); status.textContent = 'Copied ' + word; } catch { status.textContent = 'Clipboard unavailable. Select and copy the word manually.'; } };
+      mark.onclick = () => act('mark', {word}); row.append(element('span', String(index + 1).padStart(2, '0'), 'rank'), copy, mark); list.append(row);
+    });
+  }
+  async function act(type, data) { try { render(await send(type, data)); } catch (error) { status.textContent = error.message; } }
+  async function tick() {
+    if (busy || picking || !host) return; busy = true;
+    try {
+      const snapshot = PufferReader.read(document, pinned);
+      snapshot.continuous=continuous&&document.visibilityState==='visible';snapshot.extensionVersion='2.2.0';
+      const identity = PufferReader.normalize(snapshot.question) + '|' + snapshot.categoryId;
+      if (identity !== previous) { previous = identity; repeats = 1; } else repeats++;
+      // Confirm changes before resetting used words or making a paid request.
+      if (repeats >= 2) {
+        const state=await send('sync',snapshot);render(state);
+        const active=slime&&!state.paused&&!picking&&document.visibilityState==='visible'&&state.question&&PufferReader.normalize(state.question)===PufferReader.normalize(snapshot.question);
+        autoNote.textContent=controller.step(document,state.answers,!!active,identity);
+
+      }
+    } catch (error) { status.textContent = /fetch|abort|network/i.test(error.message) ? 'Keep the desktop app open, then click Launch Krillion again.' : error.message; }
+    finally { busy = false; }
+  }
+  async function start() {
+    mount();
+    try { if (pairing) { const reply = await chrome.runtime.sendMessage(pairing); if (!reply?.ok) throw new Error(reply?.error || 'Pairing failed'); pairing = null; } }
+    catch (error) { status.textContent = error.message; }
+    const observer=new MutationObserver(()=>{if(!busy)setTimeout(tick,40);});observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+    tick(); setInterval(tick, 200);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once: true}); else start();
+})();
