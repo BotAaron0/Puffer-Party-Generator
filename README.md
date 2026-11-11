@@ -1,4 +1,4 @@
-# Puffer Party Cheat
+# Puffer Party Generator
 
 ### For setup, scroll down to "One Time Setup" section below. 
 
