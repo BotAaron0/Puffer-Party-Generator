@@ -1,4 +1,4 @@
-# Puffer Party Helper v3.0.1
+# Puffer Party Helper v3.0.2
 
 Made by BotAaron_. Runs entirely in the browser extension.
 
@@ -19,3 +19,5 @@ Historical desktop source remains in the repository. The EXE is no longer requir
 Validation: `node extension/test.cjs` and `node extension/standalone.test.cjs`. Tests use mocked DOM and provider responses; live game/provider verification is separate.
 
 Launch Puffer Party always opens a fresh main Party page. It does not select an existing room tab.
+
+Use **Test AI connection** in the extension popup to run one short request and see the provider HTTP status and reason. Invalid requests, disabled APIs, key restrictions, unavailable models and quota errors have distinct guidance. Key values are redacted from errors.

@@ -6,6 +6,12 @@
   async function save(){await request('settings-save',{provider:$('provider').value,model:$('model').value.trim(),key:$('key').value.trim(),remember:$('remember').checked});$('status').textContent='Saved. Suggestions start automatically in the game.';}
   $('provider').onchange=()=>{$('model').value=defaults[$('provider').value];$('key').value='';link();};
   $('settings').onsubmit=async event=>{event.preventDefault();try{await save();}catch(error){$('status').textContent=error.message;}};
+  $('test').onclick=async()=>{
+    const button=$('test');button.disabled=true;
+    try{await save();$('status').textContent='Testing AI connection...';const result=await request('settings-test');$('status').textContent=result.message;}
+    catch(error){$('status').textContent=error.message;}
+    finally{button.disabled=false;}
+  };
   $('launch').onclick=async()=>{try{await save();await chrome.tabs.create({url:'https://krillion.io/party'});}catch(error){$('status').textContent=error.message;}};
   request('settings-load').then(config=>{if(config.provider)$('provider').value=config.provider;$('model').value=config.model||defaults[$('provider').value];$('key').value=config.key||'';$('remember').checked=!!config.remember;link();}).catch(error=>{$('status').textContent=error.message;});
 })();

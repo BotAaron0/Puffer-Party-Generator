@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Puffer Party Helper",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Standalone Krillion helper with AI suggestions, rarity sorting and Autofill.",
   "permissions": [
     "storage"

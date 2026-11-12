@@ -13,6 +13,19 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (sender.id === chrome.runtime.id && sender.url === chrome.runtime.getURL('popup.html')) {
     (async () => {
       if (message.type === 'settings-load') return loadConfig();
+      if (message.type === 'settings-test') {
+        const config=await loadConfig();
+        if(!config.key)throw new Error('Save your API key first.');
+        const controller=new AbortController();
+        const timer=setTimeout(()=>controller.abort(),45000);
+        try {
+          const answers=await PufferAI.generate(config,'Name a primary color.',[],()=>{},controller.signal);
+          return {message:config.provider+' connection successful. Model: '+config.model+'. Received '+answers.length+' suggestions.'};
+        } catch(error) {
+          if(controller.signal.aborted)throw new Error('AI connection test timed out. Try again.');
+          throw error;
+        } finally {clearTimeout(timer);}
+      }
       if (message.type !== 'settings-save') throw new Error('Unknown settings operation');
       const config = message.data || {};
       if (!['Gemini','OpenAI'].includes(config.provider) || !/^[a-zA-Z0-9._-]{1,100}$/.test(config.model || '') || !config.key?.trim()) throw new Error('Choose a provider, model and API key.');

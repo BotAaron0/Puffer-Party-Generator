@@ -59,7 +59,7 @@
     continuousButton=element('button','Live top-up: ON');continuousButton.title='Stream more suggestions every 18 seconds while this category remains active; API limits apply.';
     continuousButton.onclick=()=>{continuous=!continuous;continuousButton.textContent='Live top-up: '+(continuous?'ON':'OFF');};
     const settings=element('button','AI settings');settings.onclick=()=>send('open-settings',{});
-    body.append(element('p','made by BotAaron_ | v3.0.1 | Extension only','footer'));
+    body.append(element('p','made by BotAaron_ | v3.0.2 | Extension only','footer'));
     actions.append(settings,pause,retry,continuousButton,choose,chooseInput,reset);body.append(actions,element('p','Tier order: One in a Krillion > Deep Cut > Rare > Schooler > Too Clever > Plankton. GAME = read from page; est. = AI guess.','footer'));
     slimeButton.onclick=()=>setSlime(!slime);
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&slime){setSlime(false);status.textContent='Auto play stopped.';}},true);
@@ -167,7 +167,7 @@
       if(grind&&!slime&&!controlPending)await setGrind(false);
       if(grind&&slime&&!currentPaused&&grindController.step(document,true)){joiningUntil=Date.now()+1500;autoNote.textContent='Grind mode - joining next game';}
       const snapshot = PufferReader.read(document, pinned);
-      snapshot.continuous=continuous&&tabCanRun();snapshot.extensionVersion='3.0.1';
+      snapshot.continuous=continuous&&tabCanRun();snapshot.extensionVersion='3.0.2';
       const identity = PufferReader.normalize(snapshot.question) + '|' + snapshot.categoryId;
       if (identity !== previous) { previous = identity; repeats = 1; } else repeats++;
       // Confirm changes before resetting used words or making a paid request.

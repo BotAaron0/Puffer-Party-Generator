@@ -1,8 +1,8 @@
 # Puffer Party Helper
 
-made by BotAaron_ | **v3.0.1 - Extension only**
+made by BotAaron_ | **v3.0.2 - Extension only**
 
-New in v3.0.1: yellow pufferfish icon; Launch opens a fresh Party page instead of selecting an existing room tab.
+New in v3.0.2: provider-specific error details and a Test AI connection button. Gemini requests use default thinking settings. Includes the yellow pufferfish icon and fresh Party launch.
 
 AI requests run directly in the extension. Includes rarity sorting, Autofill, letter typing, Grind mode and automatic refill. No EXE is required.
 
@@ -20,7 +20,7 @@ Checks: `node extension/test.cjs` and `node extension/standalone.test.cjs`. Live
 
 ## Historical desktop releases
 
-These notes document earlier versions. Use the setup above for v3.0.1.
+These notes document earlier versions. Use the setup above for v3.0.2.
 
 <details><summary>Earlier release notes and desktop instructions</summary>
 
