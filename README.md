@@ -1,3 +1,27 @@
+# Puffer Party Helper
+
+made by BotAaron_ | **v3.0.0 - Extension only**
+
+AI requests run directly in the extension. Includes rarity sorting, Autofill, letter typing, Grind mode and automatic refill. No EXE is required.
+
+## One-time setup
+
+1. Extract **PufferPartyHelper-Extension.zip**.
+2. Open `chrome://extensions` or `edge://extensions` and enable **Developer mode**.
+3. Click **Load unpacked** and select the extracted folder containing `manifest.json`.
+4. Click the extension icon, choose Gemini or OpenAI, paste its API key, and click **Launch Puffer Party**.
+5. Reload existing game tabs after updating.
+
+Keys last for the browser session unless Remember key is checked. Remembered keys use local extension storage without additional encryption. Category text and excluded answers go to the selected provider; API quotas and billing apply. See [extension details](EXTENSION.md).
+
+Checks: `node extension/test.cjs` and `node extension/standalone.test.cjs`. Live game/API verification has not been performed.
+
+## Historical desktop releases
+
+These notes document earlier versions. Use the setup above for v3.0.0.
+
+<details><summary>Earlier release notes and desktop instructions</summary>
+
 # Puffer Party Generator
 
 ### For setup, scroll down to "One Time Setup" section below. 
@@ -137,3 +161,5 @@ If the panel does not appear, check that the extension is enabled in the browser
 The previous OCR interface remains available with `PufferHelper.exe --legacy` as a fallback.
 
 References: [Chrome content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts), [extension networking](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests), [OpenAI text generation](https://developers.openai.com/api/docs/guides/text).
+
+</details>

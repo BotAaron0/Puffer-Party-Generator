@@ -141,20 +141,20 @@ function testReader() {
 async function testWorker() {
   let listener, fetched; const storage = {};
   let portListener,pulse,tabSetting,cleared=0;
-  const chrome = {runtime: {onMessage: {addListener: fn => listener = fn},onConnect:{addListener:fn=>portListener=fn}}, tabs: {onRemoved: {addListener() {}},get:async()=>({autoDiscardable:true}),update:async(id,setting)=>{tabSetting=setting.autoDiscardable;}}, storage: {session: {
+  const chrome = {runtime: {getURL:path=>'chrome-extension://test/'+path,onMessage: {addListener: fn => listener = fn},onConnect:{addListener:fn=>portListener=fn}}, tabs: {onRemoved: {addListener() {}},get:async()=>({autoDiscardable:true}),update:async(id,setting)=>{tabSetting=setting.autoDiscardable;}}, storage: {session: {
     async set(data) {Object.assign(storage, data);}, async get(key) {return {[key]: storage[key]};}, async remove(key) {delete storage[key];}
   }}};
   const context = {chrome, URL, Map, Number, Error, JSON, AbortController, setTimeout, clearTimeout,setInterval:fn=>{pulse=fn;return 1;},clearInterval(){cleared++;},
+    importScripts(){}, PufferEngine:require('./engine.js'),
     fetch: async (url, options) => {fetched = {url, options}; return {ok: true, json: async () => ({question: 'Name a greeting', answers: ['hello']})};}};
   vm.runInNewContext(fs.readFileSync(require.resolve('./background.js'), 'utf8'), context);
   const sender = {url: 'https://krillion.io/party', frameId: 0, tab: {id: 7}};
   const message = data => new Promise(resolve => listener(data, sender, resolve));
   assert.equal(listener({type: 'sync'}, {...sender, url: 'https://example.com/'}, () => {}), false);
   assert.equal(listener({type: 'sync'}, {...sender, frameId: 1}, () => {}), false);
-  assert.equal((await message({type: 'pair', port: 45000, token: 'a'.repeat(64)})).ok, true);
+  
   assert.equal((await message({type: 'sync', data: {question: 'Name a greeting'}})).ok, true);
-  assert.equal(fetched.url, 'http://127.0.0.1:45000/sync');
-  assert.equal(fetched.options.headers.Authorization, 'Bearer ' + 'a'.repeat(64));
+
   assert.equal((await message({type: 'pair', port: 80, token: 'a'.repeat(64)})).ok, false);
   assert.equal((await message({type: 'fetch', url: 'https://example.com/'})).ok, false);
   assert.equal((await message({type:'grind',data:{enabled:true}})).data.enabled,true);assert.equal(tabSetting,false);
@@ -182,7 +182,7 @@ async function testPanel(){
   const panel=body.children[0].shadow.children.find(x=>x.className==='panel');
   const slime=panel.children.find(x=>x.className==='slime');assert.ok(slime,'Slime button missing');assert.equal(panel.children.indexOf(slime),1,'Slime button is below the answer list');
   const find=(node,predicate)=>predicate(node)?node:node.children.map(child=>find(child,predicate)).find(Boolean);
-  assert.ok(find(panel,x=>x.text==='PUFFER v2.3 / GRIND'));
+  assert.ok(find(panel,x=>x.text==='Puffer Party Helper'));
   assert.ok(find(panel,x=>x.text==='Retry AI'),'Manual Retry AI button missing');
   assert.ok(find(panel,x=>x.className==='tier game'&&x.text==='GAME / Deep Cut'));
   const slider=find(panel,x=>x.type==='range');assert.ok(slider);slider.value='1500';slider.oninput();assert.equal(savedDelay,1500,'Enter slider did not update controller');

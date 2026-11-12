@@ -1,1 +1,27 @@
-<!doctype html><html><head><meta charset="utf-8"><style>body{width:270px;background:#1b180e;color:#fff7d9;font:14px/1.6 system-ui;padding:16px}h2{font-size:18px;color:#ffd640}p{color:#c5b583}a{color:#ffd640}</style></head><body><h2>Puffer v2.2 / Yellow</h2><p>Open <b>PufferHelper-Yellow.exe</b> and click <b>Launch Krillion</b>. The panel starts automatically in that tab.</p><p>Keep the desktop app open while playing.</p><a href="SETUP.html" target="_blank">Setup instructions</a></body></html>
+<!doctype html>
+
+<html><head><meta charset="utf-8"><title>Puffer Party Helper</title><style>
+
+*{box-sizing:border-box}body{width:360px;margin:0;padding:22px;background:#19170e;color:#fff7d9;font:14px/1.5 system-ui}small{color:#cabc88}h1{font-size:25px;margin:4px 0}p{color:#cabc88}label{display:block;margin-top:14px}input,select,button{width:100%;padding:10px;border:1px solid #655821;border-radius:9px;background:#292513;color:#fff7d9;font:inherit}input[type=checkbox]{width:auto}button{cursor:pointer;background:#ffda42;color:#211b05;font-weight:750;margin-top:14px}#status{min-height:24px;color:#ffda42}a{color:#ffda42}
+
+</style></head><body>
+
+<small>made by BotAaron_</small><h1>Puffer Party Helper</h1>
+
+<small>v3.0.0 ? Extension only</small><p>Direct AI suggestions, live rarity sorting, Autofill and Grind mode.</p>
+
+<form id="settings"><label>AI provider<select id="provider"><option>Gemini</option><option>OpenAI</option></select></label>
+
+<label>Model<input id="model" required value="gemini-3.5-flash-lite" autocomplete="off"></label>
+
+<label>API key<input id="key" type="password" required autocomplete="off" placeholder="Paste your provider API key"></label>
+
+<label><input id="remember" type="checkbox"> Remember key after closing the browser</label>
+
+<small>Remembered keys are stored locally in Chrome extension storage, without additional encryption. Otherwise the key lasts this browser session. Category text and excluded answers go to your selected AI provider; API limits and charges apply.</small>
+
+<button type="submit">Save AI settings</button></form><button id="launch">Launch Puffer Party</button><p id="status" role="status"></p>
+
+<a id="key-link" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">Get an API key</a>
+
+<script src="popup.js"></script></body></html>

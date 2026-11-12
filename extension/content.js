@@ -1,13 +1,6 @@
 (() => {
   'use strict';
   if (window.top !== window) return;
-  let pairing = null;
-  const hash = location.hash.match(/^#puffer=(\d{4,5})\.([a-f0-9]{64})$/);
-  if (hash) {
-    // This is a short-lived local session token, never the OpenAI API key.
-    pairing = {type: 'pair', port: Number(hash[1]), token: hash[2]};
-    history.replaceState(history.state, '', location.pathname + location.search);
-  }
   let pinned = null, busy = false, previous = '', repeats = 0, lastDisplay = '', picking = false;
   let host, shadow, status, question, list, counts, pause, toggle, body,rankLabel,continuousButton;
   let continuous=true;
@@ -22,7 +15,7 @@
   function element(tag, text, cls) { const node = document.createElement(tag); if (text) node.textContent = text; if (cls) node.className = cls; return node; }
   async function send(type, data) {
     const reply = await chrome.runtime.sendMessage({type, data});
-    if (!reply || !reply.ok) throw new Error(reply?.error || 'Desktop connection unavailable');
+    if (!reply || !reply.ok) throw new Error(reply?.error || 'Extension connection unavailable');
     return reply.data;
   }
   function mount() {
@@ -32,14 +25,14 @@
     shadow = host.attachShadow({mode: 'closed'});
     const style = element('style'); style.textContent = PufferStyles; shadow.append(style);
     const panel = element('section', '', 'panel'); shadow.append(panel);
-    const bar = element('div', '', 'bar'); bar.append(element('span', '', 'dot'), element('span', 'PUFFER v2.3 / GRIND', 'brand'));
+    const bar = element('div', '', 'bar'); bar.append(element('span', '', 'dot'), element('span', 'Puffer Party Helper', 'brand'));
     toggle = element('button', '−', 'icon'); toggle.title = 'Collapse panel'; bar.append(toggle); panel.append(bar);
     slimeButton=element('button','Autofill','slime');panel.append(slimeButton);
     slimeButton.setAttribute('aria-pressed','false');
     slimeButton.title='Prepare a word and try Enter at controlled intervals. Rejections advance to the next word. Escape stops.';
     grindButton=element('button','Grind mode','grind');grindButton.setAttribute('aria-pressed','false');grindButton.title='Auto-join Join next games and keep Autofill running in this tab while you use another tab. Off by default.';panel.append(grindButton);grindButton.onclick=()=>setGrind(!grind).catch(error=>{status.textContent=error.message;});
     body = element('div', '', 'body'); panel.append(body);
-    question = element('div', 'Waiting for a game category…', 'question'); status = element('div', 'Connecting to desktop app…', 'status');
+    question = element('div', 'Waiting for a game category…', 'question'); status = element('div', 'Connecting to extension…', 'status');
     autoNote=element('div','Auto play off','auto-note');body.append(autoNote);
     const delayLabel=element('label','Average Enter delay: 700 ms (±15%)','delay-label');
     const delaySlider=element('input');delaySlider.type='range';delaySlider.min='100';delaySlider.max='3000';delaySlider.step='50';delaySlider.value='700';delaySlider.setAttribute('aria-label','Delay between Enter presses');
@@ -65,7 +58,9 @@
     const chooseInput=element('button','Choose answer box');chooseInput.onclick=()=>{picking='answer';status.textContent='Click the game answer textbox once. Escape cancels.';};
     continuousButton=element('button','Live top-up: ON');continuousButton.title='Stream more suggestions every 18 seconds while this category remains active; API limits apply.';
     continuousButton.onclick=()=>{continuous=!continuous;continuousButton.textContent='Live top-up: '+(continuous?'ON':'OFF');};
-    actions.append(pause,retry,continuousButton,choose,chooseInput,reset);body.append(actions,element('p','Tier order: One in a Krillion > Deep Cut > Rare > Schooler > Too Clever > Plankton. GAME = read from page; est. = AI guess.','footer'));
+    const settings=element('button','AI settings');settings.onclick=()=>send('open-settings',{});
+    body.append(element('p','made by BotAaron_ | v3.0.0 | Extension only','footer'));
+    actions.append(settings,pause,retry,continuousButton,choose,chooseInput,reset);body.append(actions,element('p','Tier order: One in a Krillion > Deep Cut > Rare > Schooler > Too Clever > Plankton. GAME = read from page; est. = AI guess.','footer'));
     slimeButton.onclick=()=>setSlime(!slime);
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&slime){setSlime(false);status.textContent='Auto play stopped.';}},true);
     toggle.onclick=()=>{
@@ -172,7 +167,7 @@
       if(grind&&!slime&&!controlPending)await setGrind(false);
       if(grind&&slime&&!currentPaused&&grindController.step(document,true)){joiningUntil=Date.now()+1500;autoNote.textContent='Grind mode - joining next game';}
       const snapshot = PufferReader.read(document, pinned);
-      snapshot.continuous=continuous&&tabCanRun();snapshot.extensionVersion='2.2.0';
+      snapshot.continuous=continuous&&tabCanRun();snapshot.extensionVersion='3.0.0';
       const identity = PufferReader.normalize(snapshot.question) + '|' + snapshot.categoryId;
       if (identity !== previous) { previous = identity; repeats = 1; } else repeats++;
       // Confirm changes before resetting used words or making a paid request.
@@ -190,14 +185,12 @@
         }
 
       }
-    } catch (error) { status.textContent = /fetch|abort|network/i.test(error.message) ? 'Keep the desktop app open, then click Launch Krillion again.' : error.message; }
+    } catch (error) { status.textContent = /fetch|abort|network/i.test(error.message) ? 'Extension connection interrupted. Reload this game tab.' : error.message; }
     finally { busy = false; }
   }
   async function start() {
     mount();
     PufferAutoplay.installKeyboardGuard(document,()=>slime&&letterMode&&!currentPaused&&!picking&&document.visibilityState==='visible');
-    try { if (pairing) { const reply = await chrome.runtime.sendMessage(pairing); if (!reply?.ok) throw new Error(reply?.error || 'Pairing failed'); pairing = null; } }
-    catch (error) { status.textContent = error.message; }
     try{const saved=await send('grind-state',{});if(saved.enabled)await setGrind(true,true);}catch{}
     const observer=new MutationObserver(()=>{if(!busy)setTimeout(tick,40);});observer.observe(document.body,{childList:true,subtree:true,characterData:true});
     tick(); setInterval(tick, 200);

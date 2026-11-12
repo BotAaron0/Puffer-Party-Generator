@@ -1,15 +1,38 @@
 {
   "manifest_version": 3,
-  "name": "Puffer Companion",
-  "version": "2.3.2",
-  "description": "Read Krillion categories and played answers, with AI suggestions from your local Puffer Helper app.",
-  "permissions": ["storage"],
-  "host_permissions": ["http://127.0.0.1/*"],
-  "background": {"service_worker": "background.js"},
-  "action": {"default_title": "Puffer Companion", "default_popup": "popup.html"},
-  "content_scripts": [{
-    "matches": ["https://krillion.io/*", "https://www.krillion.io/*"],
-    "js": ["reader.js", "autoplay.js", "grind.js", "panel-style.js", "content.js"],
-    "run_at": "document_start"
-  }]
+  "name": "Puffer Party Helper",
+  "version": "3.0.0",
+  "description": "Standalone Krillion helper with AI suggestions, rarity sorting and Autofill.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.openai.com/*",
+    "https://krillion.io/*",
+    "https://www.krillion.io/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Puffer Party Helper",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://krillion.io/*",
+        "https://www.krillion.io/*"
+      ],
+      "js": [
+        "reader.js",
+        "autoplay.js",
+        "grind.js",
+        "panel-style.js",
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
 }
