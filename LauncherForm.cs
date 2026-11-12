@@ -12,8 +12,9 @@ sealed class LauncherForm : Form {
     public LauncherForm(){
         Text="Puffer Party Helper";ClientSize=new Size(460,530);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;
         StartPosition=FormStartPosition.CenterScreen;BackColor=Color.FromArgb(24,22,13);ForeColor=Color.FromArgb(255,247,217);Font=new Font("Segoe UI",10);
+        Controls.Add(new Label {Text="made by BotAaron_",Left=30,Top=20,Width=400,Height=22,ForeColor=Color.FromArgb(255,214,64),Font=new Font("Segoe UI",10)});
         Controls.Add(new Label {Text="Puffer Party Helper",Left=28,Top=48,Width=410,Height=50,Font=new Font("Segoe UI",23,FontStyle.Bold)});
-        Controls.Add(new Label {Text="Version 2.3.1\nGrind mode with background play\nAutomatic refill and letter-by-letter typing",Left=30,Top=112,Width=400,Height=75,ForeColor=Color.FromArgb(197,181,131)});
+        Controls.Add(new Label {Text="Version 2.3.2\nGrind mode with background play\nAutomatic refill and letter-by-letter typing",Left=30,Top=112,Width=400,Height=75,ForeColor=Color.FromArgb(197,181,131)});
         var launch=Button("Launch Krillion  >",30,200,400,56,true);launch.Click+=(s,e)=>Launch();Controls.Add(launch);
         var slime=Button("Autofill",30,270,400,44,false);Controls.Add(slime);slime.Click+=(s,e)=>{if(bridge!=null)bridge.SetAutoPlay(!bridge.AutoPlay);};
         var api=Button("API settings",30,330,192,40,false);api.Click+=(s,e)=>{using(var dialog=new AiSettingsDialog(settings))dialog.ShowDialog(this);};Controls.Add(api);
