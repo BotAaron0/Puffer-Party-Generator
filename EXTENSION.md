@@ -1,4 +1,4 @@
-# Puffer Party Helper v3.0.0
+# Puffer Party Helper v3.0.1
 
 Made by BotAaron_. Runs entirely in the browser extension.
 
@@ -17,3 +17,5 @@ Grind mode works in background tabs while the browser and computer remain runnin
 Historical desktop source remains in the repository. The EXE is no longer required.
 
 Validation: `node extension/test.cjs` and `node extension/standalone.test.cjs`. Tests use mocked DOM and provider responses; live game/provider verification is separate.
+
+Launch Puffer Party always opens a fresh main Party page. It does not select an existing room tab.
